@@ -1,0 +1,17 @@
+# System Files
+.DS_Store
+Thumbs.db
+
+# Presentations and temporary scripts
+*.pptx
+generate_ppt.py
+generate_final_ppt.py
+temp_venv/
+
+# Figures folder
+figures/
+
+# Build and Dependency directories (redundant check, but good for root safety)
+Backend/target/
+Frontend/node_modules/
+Frontend/build/

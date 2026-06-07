@@ -1,0 +1,121 @@
+========================================================================
+                          JOBCONNECT - PROJECT DESCRIPTION
+========================================================================
+
+1. PROJECT OVERVIEW
+------------------------------------------------------------------------
+JobConnect is a premium, modern, full-stack job board and applicant-matching
+platform designed to streamline the tech recruitment ecosystem. It separates
+users into two distinct roles—Applicants (Job Seekers) and Employers—and 
+implements real-time compatibility screening to make matching, applying, 
+and screening talent exceptionally efficient.
+
+
+2. THE PROBLEMS SOLVED
+------------------------------------------------------------------------
+* blind application submissions: On typical platforms, candidates apply 
+  to roles without knowing how well their skillset aligns with the job. 
+  JobConnect solves this by calculating a real-time "Match Score" for each 
+  job listing, showing candidates exactly where they stand before applying.
+  
+* manual candidate screening: Employers usually have to spend hours 
+  reading resumes to check for skills. JobConnect solves this by automatically 
+  scoring, ranking, and sorting applicant pools by skill compatibility 
+  against specific vacancy requirements.
+  
+* skill gap visibility: Instead of just rejecting candidates, the system 
+  provides an active "Skill Gap Advisor" highlighting matching skills in green 
+  and missing skills in red/orange, suggesting to candidates what they should 
+  learn to improve their employability.
+  
+* session reliability: Solves JWT token invalidation upon server restarts 
+  by utilising a secure static signature key, paired with Axios response 
+  interceptors that cleanly auto-logout/redirect user sessions on stale 
+  tokens rather than crashing with connectivity errors.
+
+
+3. KEY FEATURES
+------------------------------------------------------------------------
+* MULTI-ROLE SYSTEM: Fully independent portals for Job Seekers (Applicants) 
+  and Employers, protected by JWT authentication and Spring Security.
+  
+* LIVE PROFILE SETTINGS: Accessible via the header's cogwheel settings. 
+  Allows candidates to update their Full Name, Professional Title, and 
+  comma-separated skills. Changes dynamically update match metrics globally.
+  
+* COMPATIBILITY MATCH SCORE: Dynamically compares the job's required skills 
+  with the candidate's profile skills to yield a percentage score.
+  
+* ACTIONABLE SKILL GAP VISUALS: Shows checkmarked matching skills and 
+  color-coded missing skills directly in the expandable job cards.
+  
+* VACANCY PUBLISHING: Form layout allowing employers to post job vacancies 
+  with title, location, salary, description, and comma-separated skills.
+  
+* TALENT RANKING WORKSPACE: Employers can select any job they posted. The 
+  candidate list immediately computes compatibility match scores for all 
+  applicants, sorts them descending by score, and displays a breakdown 
+  of matched vs missing skills for each candidate card.
+  
+* PAGINATED SEARCH & FILTERING: Dynamic job search board with autocompleted 
+  keyword suggestions and location search.
+
+
+4. TECHNICAL STACK
+------------------------------------------------------------------------
+BACKEND:
+  - Language: Java 17
+  - Framework: Spring Boot (v3.5.7)
+  - Security: Spring Security (JWT authentication)
+  - Database Mapping: Hibernate, Spring Data JPA
+  - Build Tool: Maven
+  
+FRONTEND:
+  - Library: React (v19)
+  - Language: TypeScript
+  - Styling: Vanilla CSS, Tailwind CSS (v3)
+  - Component Library: Mantine UI (v8)
+  - Icons: Tabler Icons React
+  - Client API: Axios (with custom request/response interceptors)
+
+DATABASE:
+  - Engine: MySQL (v9.6)
+
+
+5. ARCHITECTURE & WORKFLOW
+------------------------------------------------------------------------
+* Client-Server Architecture: The React client communicates with the 
+  Spring Boot server via stateless REST APIs.
+  
+* Session Management: User authentication details (JWT token, name, email, 
+  role, skills, title) are persisted inside local storage. The custom Axios 
+  request interceptor injects the Bearer Token into headers.
+  
+* Database Seeding: Features a robust database seeder that inserts a default 
+  Employer account (employer@acme.com / password123), 15 mock candidate 
+  profiles with custom skills, and 100 job listings with title-specific 
+  skill requirements.
+
+
+6. RUNNING THE PROJECT LOCALLY
+------------------------------------------------------------------------
+Prerequisites:
+  - MySQL Server running locally on port 3306 (with a database named 'jobconnect').
+  - OpenJDK 17 or higher.
+  - Node.js & npm installed.
+
+A. STARTING THE BACKEND:
+  1. Navigate to the `/Backend` directory.
+  2. Configure your MySQL username/password inside `src/main/resources/application.properties`.
+  3. Compile and launch using Maven Wrapper:
+     $ ./mvnw spring-boot:run
+  4. The API server will run at http://localhost:8080.
+
+B. STARTING THE FRONTEND:
+  1. Navigate to the `/Frontend` directory.
+  2. Install node dependencies (if not already done):
+     $ npm install
+  3. Launch the development server:
+     $ npm start
+  4. The web application will launch at http://localhost:3000.
+========================================================================
