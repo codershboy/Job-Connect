@@ -1,55 +1,119 @@
 ========================================================================
-                 JOBCONNECT — QUICK EXPLANATION GUIDE
+                 JOBCONNECT — COMPLETE PROJECT TECHNICAL GUIDE
 ========================================================================
 
-PART 1: THE CORE PROBLEM & VALUE PROPOSITION
+SECTION 1: THE BUSINESS VALUE & CORE MATCHING ALGORITHM
 ------------------------------------------------------------------------
-* The Problem: 
-  Traditional job boards involve blind submissions where candidates apply 
-  without knowing skill fit, and recruiters waste hours manually screening 
-  resumes to check for specific tech stacks.
+* The Problem Solved:
+  1. Blind Applications: Candidates apply to roles without knowing if they meet
+     the core skills, leading to a high rejection rate and resume overload.
+  2. Manual HR Screening: HR recruiters spend hours reading resumes to verify
+     skills, which is slow and prone to errors.
+  3. Actionable Feedback: Typical platforms reject candidates with generic
+     emails. JobConnect provides visual, constructive skill-gap advice.
 
-* The Solution: 
-  JobConnect is a premium full-stack job board that introduces automated, 
-  real-time skill matching. 
-  - Candidates see exactly how compatible they are with a job via a live 
-    percentage "Match Score" before applying.
-  - A "Skill Gap Advisor" highlights matching skills in green and missing 
-    skills in red to guide learning.
+* The Set-Intersection Matching Algorithm:
+  - Both Applicant Skills and Job Required Skills are parsed as normalized arrays
+    of strings (trimmed, case-insensitive).
+  - Let A = Set of candidate profile skills (e.g. {"Java", "React", "TypeScript"})
+  - Let J = Set of job vacancy required skills (e.g. {"React", "TypeScript", "SQL", "Docker"})
+  - Match Score Formula:
+    
+                     | A ∩ J | (Common matching skills)
+      Match Score =  ----------------------------------  x 100
+                         | J | (Total required skills)
+    
+  - Example: | A ∩ J | = {"React", "TypeScript"} (size = 2). | J | = 4.
+    Score = (2 / 4) * 100 = 50% compatibility.
+  - The missing skills set (J - A) = {"SQL", "Docker"} is forwarded directly to
+    the Skill Gap Advisor to highlight gaps in red/orange.
 
 
-PART 2: ARCHITECTURE & TECHNOLOGY STACK
+SECTION 2: FULL-STACK TECHNICAL ARCHITECTURE & SECURITY
 ------------------------------------------------------------------------
-JobConnect is built as a stateless 3-tier architecture:
+JobConnect utilizes a stateless, secure 3-Tier model:
 
-1. Presentation Tier (Frontend):
-   - React (v19) & TypeScript.
-   - Mantine UI (v8) & Tailwind CSS (v3) for dynamic, responsive views.
-   - Axios with request/response interceptors to handle seamless session 
-     renewals and clean redirects.
+1. Presentation Layer (Frontend - React 19 / TypeScript):
+   - Routing: Controlled client-side via react-router-dom.
+   - UI Engine: Mantine UI (v8) components (Inputs, Modals, Badges) paired
+     with Tailwind CSS for layout styling.
+   - Session State: Context API (AuthContext) manages global login flags,
+     active tokens, and user role configuration (Applicant / Employer).
+   - Network Interceptors: Custom Axios instance:
+     * Request: Automatically injects JWT as a 'Bearer' token in HTTP headers.
+     * Response: Catches 401 Unauthorized errors to automatically log out the
+       stale session and redirect to home, avoiding browser page crashes.
 
-2. Application Tier (Backend):
-   - Java 17 & Spring Boot (v3.5.7).
-   - Spring Security & JWT stateless sessions (signed with static keys 
-     to survive server restarts).
-   - Spring Data JPA with Hibernate object-relational mapping.
+2. Application Logic Layer (Backend - Spring Boot 3.5.7):
+   - Controllers: REST APIs exposed under /api (e.g., /api/jobs, /api/users,
+     /api/applications). Mapped with WebMvcConfigurer CORS rules.
+   - Authentication (Spring Security + JWT):
+     * Completely stateless (no server-side HTTP session storage).
+     * JWT signatures are verified against a secure static key. This ensures
+       user sessions survive backend restarts without prompting logouts.
+     * Custom UserDetailsService maps user credentials, validating roles before
+       allowing access to secure methods (e.g., posting jobs, talent ranking).
+   - Data Mapping (Spring Data JPA / Hibernate):
+     * Manages entity relationships: User (1) -> Job (N), User (1) -> Application (N),
+       Job (1) -> Application (N). Mapped with auto-update database configurations.
 
-3. Database Tier (Storage):
-   - MySQL (v9.6) with HikariCP for high-performance connection pooling.
-   - Built-in Database Seeder populates 100 jobs and 15 mock applicants.
+3. Storage Layer (Database - MySQL 9.6):
+   - Connection Management: HikariCP connection pool manages active threads.
+   - Seeder: DatabaseSeeder automatically populates the tables with 1 default
+     Employer (employer@acme.com), 15 mock candidate profiles, and 100 job listings.
 
 
-PART 3: CORE WORKFLOW & FEATURES
+SECTION 3: END-TO-END REQUEST LIFECYCLE (EXAMPLE: APPLYING FOR A JOB)
 ------------------------------------------------------------------------
-1. Applicant Experience:
-   - Registers/logs in, updates profile details, and adds skills.
-   - Searches/filters jobs with live compatibility scoring.
-   - Expands job cards to view the visual Skill Gap Advisor.
-   - Submits applications securely.
+This is the complete sequence of events when an applicant clicks "Apply Now":
 
-2. Recruiter Experience:
-   - Posts job vacancies tagged with required skill keywords.
-   - Opens the Talent Ranking Workspace.
-   - Views applicant listings automatically sorted descending by match score.
-   - Audits specific candidate matched vs missing skill details.
+[React UI]
+   |  1. User clicks "Apply Now" in the dialog modal.
+   v
+[Axios Client]
+   |  2. Interceptor grabs the local JWT token and injects it into headers.
+   v  3. Sends HTTP POST request to /api/applications with body payload { jobId: X }.
+[Spring Boot Tomcat (Port 8080)]
+   |  4. Security filter chain intercepts request.
+   v
+[JwtFilter & CustomUserDetailsService]
+   |  5. Extracts token, decrypts signature, checks expiry.
+   |  6. Retrieves user email, queries roles, and saves context to SecurityContextHolder.
+   v
+[ApplicationController]
+   |  7. Receives request parameters, gets user email from the security context.
+   v  8. Calls ApplicationService.applyForJob(jobId, email).
+[ApplicationService]
+   |  9. Queries database for the User and Job entities.
+   |  10. Computes the matching score percentage on-the-fly.
+   v  11. Creates and initializes an Application record.
+[ApplicationRepository & Hibernate]
+   |  12. Generates and executes database INSERT query.
+   v
+[MySQL Database]
+   |  13. Stores application record and returns new auto-generated ID.
+   v
+[JSON Response]
+   |  14. Backend serializes the application (with score) and returns HTTP 201 Created.
+   v
+[React UI Update]
+   |  15. Promise resolves. Frontend pops a success alert and disables the Apply button.
+
+
+SECTION 4: PORTAL WALKTHROUGH & CORE FEATURES
+------------------------------------------------------------------------
+* Applicant Portal:
+  - Header Settings: Click the cogwheel to open profile settings. Candidates
+    can modify their professional title and comma-separated skills dynamically,
+    updating compatibility scores across all job cards instantly.
+  - Job Search Card: Displays match score badge. Clicking the card expands
+    details to show checkmarked green matching skills vs red missing skills.
+
+* Employer Portal:
+  - Vacancy Publisher: Recruiter submits job title, description, location,
+    salary, and comma-separated skill requirements.
+  - Talent Ranking Workspace: Recruiter selects a job vacancy. The system
+    queries all candidates, runs the set-intersection matching score against
+    their profiles, sorts them descending, and visualizes candidate profiles
+    with complete skill gap breakdowns.
 ========================================================================
