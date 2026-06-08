@@ -1,0 +1,55 @@
+========================================================================
+                 JOBCONNECT — QUICK EXPLANATION GUIDE
+========================================================================
+
+PART 1: THE CORE PROBLEM & VALUE PROPOSITION
+------------------------------------------------------------------------
+* The Problem: 
+  Traditional job boards involve blind submissions where candidates apply 
+  without knowing skill fit, and recruiters waste hours manually screening 
+  resumes to check for specific tech stacks.
+
+* The Solution: 
+  JobConnect is a premium full-stack job board that introduces automated, 
+  real-time skill matching. 
+  - Candidates see exactly how compatible they are with a job via a live 
+    percentage "Match Score" before applying.
+  - A "Skill Gap Advisor" highlights matching skills in green and missing 
+    skills in red to guide learning.
+
+
+PART 2: ARCHITECTURE & TECHNOLOGY STACK
+------------------------------------------------------------------------
+JobConnect is built as a stateless 3-tier architecture:
+
+1. Presentation Tier (Frontend):
+   - React (v19) & TypeScript.
+   - Mantine UI (v8) & Tailwind CSS (v3) for dynamic, responsive views.
+   - Axios with request/response interceptors to handle seamless session 
+     renewals and clean redirects.
+
+2. Application Tier (Backend):
+   - Java 17 & Spring Boot (v3.5.7).
+   - Spring Security & JWT stateless sessions (signed with static keys 
+     to survive server restarts).
+   - Spring Data JPA with Hibernate object-relational mapping.
+
+3. Database Tier (Storage):
+   - MySQL (v9.6) with HikariCP for high-performance connection pooling.
+   - Built-in Database Seeder populates 100 jobs and 15 mock applicants.
+
+
+PART 3: CORE WORKFLOW & FEATURES
+------------------------------------------------------------------------
+1. Applicant Experience:
+   - Registers/logs in, updates profile details, and adds skills.
+   - Searches/filters jobs with live compatibility scoring.
+   - Expands job cards to view the visual Skill Gap Advisor.
+   - Submits applications securely.
+
+2. Recruiter Experience:
+   - Posts job vacancies tagged with required skill keywords.
+   - Opens the Talent Ranking Workspace.
+   - Views applicant listings automatically sorted descending by match score.
+   - Audits specific candidate matched vs missing skill details.
+========================================================================
